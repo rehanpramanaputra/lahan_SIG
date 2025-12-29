@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>Dashboard Penggunaan Lahan Kaltim 2019</title>
+
+    <link rel="stylesheet" href="./resources/ol.css">
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+    <link rel="stylesheet" href="./resources/qgis2web.css">
+
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:Arial, sans-serif;background:#e8e8e8;}
+
+        #container{
+            display:grid;
+            grid-template-columns:300px 1fr;
+            grid-template-rows:60px 1fr;
+            height:100vh;
+        }
+        #header{
+            grid-column:1/3;
+            background:#0D9488;
+            color:#fff;
+            padding-left:15px;
+            display:flex;
+            align-items:center;
+            font-size:18px;
+            font-weight:bold;
+        }
+        #sidebar{
+            background:#1E293B;
+            color:white;
+            padding:10px;
+            overflow-y:auto;
+        }
+        #sidebar h3{
+            margin:10px 0;
+            border-bottom:1px solid #475569;
+            padding-bottom:4px;
+        }
+        .info-box{
+            background:#334155;
+            padding:10px;
+            border-radius:6px;
+            margin-bottom:10px;
+            font-size:14px;
+        }
+        #map{
+            width:100%;
+            height:100%;
+        }
+
+        .hover-popup{
+            position:absolute;
+            background:#fff;
+            border:1px solid #444;
+            border-radius:6px;
+            padding:8px 10px;
+            font-size:12px;
+            pointer-events:none;
+            display:none;
+            z-index:9999;
+            box-shadow:0 0 6px rgba(0,0,0,.4);
+        }
+        .legend-color{
+            width:16px;height:16px;display:inline-block;
+            margin-right:6px;border:1px solid #222;
+        }
+    </style>
+</head>
+
+<body>
+<div id="container">
+
+    <div id="header">📍 Dashboard Penggunaan Lahan Kalimantan Timur 2019</div>
+
+    <div id="sidebar">
+        <h3>Informasi</h3>
+        <div class="info-box">
+            Provinsi: Kalimantan Timur<br>
+
+        </div>
+
+        <h3>Detail Area</h3>
+        <div class="info-box" id="statistik">
+            Arahkan kursor ke area pada peta...
+        </div>
+
+        <h3>Legenda</h3>
+        <div class="info-box" id="legend">
+            <div><span class="legend-color" style="background:#0ae339;"></span>Hutan Lahan Kering Primer (2001–2006)</div>
+            <div><span class="legend-color" style="background:#e0a485;"></span>Perkebunan (2006–2010)</div>
+            <div><span class="legend-color" style="background:#b92a2a;"></span>Pemukiman (2010–2014)</div>
+            <div><span class="legend-color" style="background:#ef0606;"></span>Belukar Rawa (2014–2019)</div>
+        </div>
+    </div>
+
+    <div id="map">
+        <div id="popup" class="ol-popup">
+            <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+            <div id="popup-content"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- SCRIPT -->
+<script src="resources/qgis2web_expressions.js"></script>
+<script src="./resources/functions.js"></script>
+<script src="./resources/ol.js"></script>
+<script src="./resources/ol-layerswitcher.js"></script>
+<script src="resources/photon-geocoder-autocomplete.min.js"></script>
+
+<script src="layers/lahan_Kalimantan_Timur_1.js"></script>
+<script src="styles/lahan_Kalimantan_Timur_1_style.js"></script>
+<script src="./layers/layers.js"></script>
+<script src="./resources/Autolinker.min.js"></script>
+
+<script>
+// POPUP HOVER
+var hoverPopup = document.createElement('div');
+hoverPopup.className = 'hover-popup';
+document.body.appendChild(hoverPopup);
+
+function getKategori(plcode){
+    if(plcode >= 2001 && plcode <= 2006) return "Hutan Lahan Kering Primer";
+    if(plcode > 2006 && plcode <= 2010) return "Perkebunan";
+    if(plcode > 2010 && plcode <= 2014) return "Pemukiman";
+    if(plcode > 2014 && plcode <= 2019) return "Belukar Rawa";
+    return "Tidak diketahui";
+}
+
+map.on('pointermove', function(evt){
+    var feature = map.forEachFeatureAtPixel(evt.pixel,f=>f);
+
+    if(feature){
+        var code = feature.get("PL_19_R");
+        var kategori = getKategori(code);
+        hoverPopup.innerHTML = "<b>"+kategori+"</b><br>Kode Tahun: "+code;
+        hoverPopup.style.left = evt.originalEvent.pageX + 12 + 'px';
+        hoverPopup.style.top = evt.originalEvent.pageY + 12 + 'px';
+        hoverPopup.style.display = 'block';
+
+        document.getElementById("statistik").innerHTML =
+        "<b>Kategori:</b> "+kategori+
+        "<br><b>Kode Tahun:</b> "+code;
+
+        map.getTargetElement().style.cursor = 'pointer';
+    }else{
+        hoverPopup.style.display='none';
+        map.getTargetElement().style.cursor='';
+        document.getElementById("statistik").innerHTML="Arahkan kursor ke area pada peta...";
+    }
+});
+</script>
+
+<script src="./resources/qgis2web.js"></script>
+
+</body>
+</html>
